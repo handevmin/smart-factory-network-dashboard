@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS Engineering Solutions - Industrial Network Mapper</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        // 전문적인 산업용 색상 팔레트
+                        primary: "#2563EB",      // 신뢰감 있는 블루
+                        secondary: "#475569",    // 슬레이트 그레이
+                        accent: "#0891B2",       // 시안 블루
+                        success: "#059669",      // 에메랄드 그린
+                        warning: "#D97706",      // 앰버 오렌지
+                        danger: "#DC2626",       // 절제된 빨강
+                        info: "#0284C7",         // 스카이 블루
+                        neutral: "#64748B",      // 중성 그레이
+                        
+                        // 설비 타입별 전문 색상
+                        production: "#1E40AF",   // 딥 블루 (생산설비)
+                        utility: "#0D9488",      // 틸 (유틸리티)
+                        safety: "#EA580C",       // 안전 오렌지
+                        quality: "#10B981",      // 에메랄드 (품질)
+                        maintenance: "#CA8A04",  // 골드 (정비)
+                        
+                        // 상태별 색상
+                        statusNormal: "#22C55E",     // 연한 그린
+                        statusWarning: "#F59E0B",    // 앰버
+                        statusCritical: "#EF4444",   // 빨강
+                        statusMaintenance: "#6B7280" // 그레이
+                    },
+                    borderRadius: {
+                        none: "0px",
+                        sm: "4px",
+                        DEFAULT: "6px",
+                        md: "8px",
+                        lg: "12px",
+                        xl: "16px",
+                        "2xl": "20px",
+                        "3xl": "24px",
+                        full: "9999px",
+                        button: "6px",
+                    },
+                },
+            },
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #E2E8F0;
+            transition: all 0.3s ease;
+        }
+        
+        /* 라이트모드 전용 body 스타일 */
+        html.light-theme body {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+            color: #0f172a !important;
+        }
+        
+        /* 라이트모드 전용 컴포넌트 스타일 */
+        html.light-theme .glass {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px) !important;
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        html.light-theme .bg-slate-800 {
+            background-color: #ffffff !important;
+        }
+        
+        html.light-theme .bg-slate-700 {
+            background-color: #f8fafc !important;
+        }
+        
+        html.light-theme .bg-slate-600 {
+            background-color: #e2e8f0 !important;
+        }
+        
+        html.light-theme .text-slate-200 {
+            color: #0f172a !important;
+        }
+        
+        html.light-theme .text-slate-300 {
+            color: #334155 !important;
+        }
+        
+        html.light-theme .text-slate-400 {
+            color: #64748b !important;
+        }
+        
+        html.light-theme .border-slate-600 {
+            border-color: #cbd5e1 !important;
+        }
+        
+        html.light-theme .border-slate-700 {
+            border-color: #e2e8f0 !important;
+        }
+        
+        html.light-theme .hover\\:bg-slate-700:hover {
+            background-color: #f1f5f9 !important;
+        }
+        
+        html.light-theme .hover\\:bg-slate-600:hover {
+            background-color: #e2e8f0 !important;
+        }
+        
+        html.light-theme .bg-gradient-to-br {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        html.light-theme .sidebar-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+        }
+        
+        html.light-theme .sidebar-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+        }
+        
+        html.light-theme .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
+        }
+        
+        html.light-theme .file-item:hover {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%) !important;
+        }
+        
+        html.light-theme .file-item.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%) !important;
+        }
+        
+        html.light-theme input[type="range"]::-webkit-slider-track {
+            background: #e2e8f0 !important;
+        }
+        
+        html.light-theme .toggle-slider {
+            background: linear-gradient(135deg, #cbd5e1, #e2e8f0) !important;
+        }
+        
+        html.light-theme .dropdown-content {
+            background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        html.light-theme .dropdown-content a {
+            color: #0f172a !important;
+        }
+        
+        html.light-theme .dropdown-content a:hover {
+            background: #f1f5f9 !important;
+        }
+        
+        html.light-theme #network-container {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        html.light-theme [class*="bg-slate-800/90"] {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        html.light-theme [class*="bg-slate-700/50"] {
+            background-color: rgba(248, 250, 252, 0.8) !important;
+        }
+        
+        html.light-theme [class*="bg-slate-700/30"] {
+            background-color: rgba(241, 245, 249, 0.5) !important;
+        }
+        
+        /* 우측 패널 및 추가 어두운 영역들 */
+        html.light-theme .bg-slate-900 {
+            background-color: #f8fafc !important;
+        }
+        
+        html.light-theme .bg-gray-800 {
+            background-color: #ffffff !important;
+        }
+        
+        html.light-theme .bg-gray-900 {
+            background-color: #f8fafc !important;
+        }
+        
+        html.light-theme .text-gray-100 {
+            color: #1f2937 !important;
+        }
+        
+        html.light-theme .text-gray-200 {
+            color: #374151 !important;
+        }
+        
+        html.light-theme .text-gray-300 {
+            color: #4b5563 !important;
+        }
+        
+        html.light-theme .text-gray-400 {
+            color: #6b7280 !important;
+        }
+        
+        html.light-theme .border-gray-600 {
+            border-color: #d1d5db !important;
+        }
+        
+        html.light-theme .border-gray-700 {
+            border-color: #e5e7eb !important;
+        }
+        
+        html.light-theme .border-gray-800 {
+            border-color: #f3f4f6 !important;
+        }
+        
+        /* 다크 계열 배경들을 모두 라이트로 변경 */
+        html.light-theme [class*="bg-slate-900"] {
+            background-color: #f8fafc !important;
+        }
+        
+        html.light-theme [class*="bg-gray-800"] {
+            background-color: #ffffff !important;
+        }
+        
+        html.light-theme [class*="bg-gray-900"] {
+            background-color: #f8fafc !important;
+        }
+        
+        html.light-theme [class*="bg-slate-800"] {
+            background-color: #ffffff !important;
+        }
+        
+        /* 텍스트 색상들 */
+        html.light-theme [class*="text-slate-100"] {
+            color: #1f2937 !important;
+        }
+        
+        html.light-theme [class*="text-white"] {
+            color: #111827 !important;
+        }
+        
+        /* 그라데이션 배경들 */
+        html.light-theme .bg-gradient-to-br {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        html.light-theme .bg-gradient-to-r {
+            background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        /* 카드 및 패널 배경 */
+        html.light-theme .card {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* 버튼 호버 효과 */
+        html.light-theme .hover\\:bg-slate-800:hover {
+            background-color: #f1f5f9 !important;
+        }
+        
+        html.light-theme .hover\\:bg-gray-700:hover {
+            background-color: #f1f5f9 !important;
+        }
+        
+        /* 모달 배경 */
+        html.light-theme .bg-black {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        html.light-theme .bg-opacity-50 {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* 우측 패널의 어두운 요소들 추가 수정 */
+        html.light-theme [class*="bg-slate-800/50"] {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        html.light-theme [class*="from-slate-800"] {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        html.light-theme [class*="to-slate-900"] {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        }
+        
+        /* Select 요소들 */
+        html.light-theme select {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+            border-color: #d1d5db !important;
+        }
+        
+        html.light-theme [class*="bg-slate-700/50"] {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        /* 모든 slate 계열 텍스트 색상 */
+        html.light-theme .text-slate-100 {
+            color: #1f2937 !important;
+        }
+        
+        html.light-theme .text-slate-200 {
+            color: #374151 !important;
+        }
+        
+        html.light-theme .text-slate-500 {
+            color: #6b7280 !important;
+        }
+        
+        html.light-theme .text-slate-600 {
+            color: #4b5563 !important;
+        }
+        
+        /* 테두리 색상들 */
+        html.light-theme [class*="border-slate-600"] {
+            border-color: #d1d5db !important;
+        }
+        
+        html.light-theme [class*="border-slate-600/30"] {
+            border-color: rgba(209, 213, 219, 0.3) !important;
+        }
+        
+        html.light-theme [class*="border-slate-600/50"] {
+            border-color: rgba(209, 213, 219, 0.5) !important;
+        }
+        
+        /* 그림자 효과 */
+        html.light-theme .shadow-2xl {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        html.light-theme .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* 백드롭 필터 */
+        html.light-theme .backdrop-blur-sm {
+            backdrop-filter: blur(4px) !important;
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        /* 버튼 내부의 텍스트는 흰색 유지, 일반 텍스트만 검은색 */
+        html.light-theme .text-white:not(.btn-primary):not(.btn-success):not(.btn-info):not(.btn-warning):not(button .text-white):not(.filter-btn.active):not(.bg-gradient-to-r) {
+            color: #111827 !important;
+        }
+        
+        /* 그라데이션 배경이 있는 모든 요소의 텍스트는 흰색 유지 */
+        html.light-theme .bg-gradient-to-r .text-white,
+        html.light-theme .bg-gradient-to-r.text-white {
+            color: white !important;
+        }
+        
+        /* 필터 버튼 활성 상태는 흰색 텍스트 유지 */
+        html.light-theme .filter-btn.active {
+            color: white !important;
+        }
+        
+        /* Enterprise 배지 텍스트 흰색 유지 */
+        html.light-theme .bg-gradient-to-r.from-primary.to-accent {
+            color: white !important;
+        }
+        
+        /* 버튼 내부 텍스트는 명시적으로 흰색 유지 */
+        html.light-theme button .text-white,
+        html.light-theme .btn-primary .text-white,
+        html.light-theme .btn-success .text-white,
+        html.light-theme .btn-info .text-white,
+        html.light-theme .btn-warning .text-white {
+            color: white !important;
+        }
+        
+        /* 플레이스홀더 색상 */
+        html.light-theme .placeholder-slate-400::placeholder {
+            color: #9ca3af !important;
+        }
+        
+        /* 포커스 상태 */
+        html.light-theme [class*="focus:ring-primary"]:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+        }
+        
+        html.light-theme [class*="focus:border-primary"]:focus {
+            border-color: rgba(37, 99, 235, 0.5) !important;
+        }
+        
+        /* 상단 네비게이션 텍스트 색상 수정 */
+        html.light-theme nav .text-slate-400 {
+            color: #1f2937 !important;
+        }
+        
+        html.light-theme nav .text-slate-300 {
+            color: #374151 !important;
+        }
+        
+        html.light-theme nav .text-slate-200 {
+            color: #111827 !important;
+        }
+        
+        /* SmartPlant Analytics Platform 제목은 원래 그라데이션 유지 */
+        html.light-theme .bg-gradient-to-r.from-primary.to-accent.bg-clip-text {
+            background: linear-gradient(90deg, #2563eb, #0891b2) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+        
+        /* Enterprise v3.2.1 배지도 원래 스타일 유지 */
+        html.light-theme .bg-gradient-to-r.from-primary.to-accent.text-white {
+            background: linear-gradient(90deg, #2563eb, #0891b2) !important;
+            color: white !important;
+        }
+        
+        /* 다른 그라데이션 텍스트는 어두운 색상으로 변경 */
+        html.light-theme .bg-gradient-to-r.from-slate-200.to-slate-400 {
+            background: linear-gradient(90deg, #1f2937, #374151) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+        }
+        
+        /* 설비 분포 차트의 진행 바는 파란색 그라데이션 유지 */
+        html.light-theme .bg-gradient-to-r.from-blue-500.to-blue-400 {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
+        }
+        
+        /* 진행 바 배경은 라이트모드에서 연한 회색으로 */
+        html.light-theme .bg-slate-700.rounded-full.overflow-hidden {
+            background-color: #e2e8f0 !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+        
+        /* 라이트모드에서 토글 스위치 색상 */
+        html.light-theme .toggle-slider {
+            background: #cbd5e1 !important;
+        }
+        
+        /* 라이트모드에서 체크된 토글 스위치는 파란색 유지 */
+        html.light-theme input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+        }
+        
+        /* 라이트모드에서 토글 스위치 버튼 색상 */
+        html.light-theme .toggle-slider:before {
+            background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
+        }
+        
+        /* 상단 네비게이션 전체 배경 */
+        html.light-theme nav.glass {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* 버튼 텍스트 색상 - 흰색 유지 */
+        html.light-theme .btn-primary,
+        html.light-theme .btn-success,
+        html.light-theme .btn-info,
+        html.light-theme .btn-warning {
+            color: white !important;
+        }
+        
+        html.light-theme .text-white {
+            color: white !important;
+        }
+        
+        /* 리포트 생성, 공유 버튼 텍스트 흰색 */
+        html.light-theme #report-btn,
+        html.light-theme #share-btn {
+            color: white !important;
+        }
+        
+        /* 설정 적용 버튼 텍스트 흰색 */
+        html.light-theme #apply-settings {
+            color: white !important;
+        }
+        
+        /* 뷰 리셋 버튼만 검은색 유지 */
+        html.light-theme #reset-view {
+            color: #111827 !important;
+        }
+        
+        /* 기타 버튼들도 흰색 텍스트 유지 */
+        html.light-theme .btn-primary .text-white,
+        html.light-theme .btn-success .text-white,
+        html.light-theme .btn-info .text-white,
+        html.light-theme .btn-warning .text-white {
+            color: white !important;
+        }
+        
+        /* 알림 메시지 텍스트는 항상 흰색 유지 */
+        html.light-theme .fixed.top-4.right-4 {
+            color: white !important;
+        }
+        
+        html.light-theme .fixed.top-4.right-4 span {
+            color: white !important;
+        }
+        
+        html.light-theme .bg-green-600,
+        html.light-theme .bg-yellow-600,
+        html.light-theme .bg-red-600,
+        html.light-theme .bg-blue-600 {
+            color: white !important;
+        }
+        
+        /* 알림 메시지 내부의 모든 텍스트 요소 */
+        html.light-theme .fixed.top-4.right-4 * {
+            color: white !important;
+        }
+        
+        /* 네트워크 노드 라벨 텍스트 색상 - 라이트모드에서 검은색 */
+        html.light-theme .node-label {
+            fill: #111827 !important;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8) !important;
+        }
+        
+        /* 전문적인 스크롤바 */
+        .sidebar-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        .sidebar-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* 파일 아이템 스타일 */
+        .file-item:hover {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+            border-left: 3px solid #2563EB;
+        }
+        .file-item.active {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
+            border-left: 3px solid #2563EB;
+            box-shadow: inset 0 1px 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* 설비 상태 표시 */
+        .equipment-status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 하단 상태 표시 영역에서만 margin-right 제거 */
+        #bottom-status-display .equipment-status {
+            margin-right: 0;
+        }
+        .status-normal { background: linear-gradient(135deg, #22C55E, #16A34A); }
+        .status-warning { background: linear-gradient(135deg, #F59E0B, #D97706); }
+        .status-critical { background: linear-gradient(135deg, #EF4444, #DC2626); }
+        .status-maintenance { background: linear-gradient(135deg, #6B7280, #4B5563); }
+        
+        /* 커스텀 슬라이더 */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+            border: 2px solid #ffffff;
+        }
+        
+        input[type="range"]::-webkit-slider-track {
+            background: #334155;
+            height: 6px;
+            border-radius: 3px;
+        }
+        
+        /* 라이트모드에서 슬라이더 트랙 색상 조정 */
+        html.light-theme input[type="range"]::-webkit-slider-track {
+            background: #cbd5e1 !important;
+            border: 1px solid #94a3b8 !important;
+        }
+        
+        /* 라이트모드에서 슬라이더 썸 색상 유지 */
+        html.light-theme input[type="range"]::-webkit-slider-thumb {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8) !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3) !important;
+        }
+        
+        /* 라이트모드에서 슬라이더 컨테이너 배경 */
+        html.light-theme .bg-slate-700 {
+            background-color: #e2e8f0 !important;
+        }
+        
+        /* 토글 스위치 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #475569, #334155);
+            transition: .3s;
+            border-radius: 24px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+        
+        /* 파일 업로드 */
+        .custom-file-upload {
+            display: inline-block;
+            cursor: pointer;
+        }
+        .custom-file-upload input[type="file"] {
+            display: none;
+        }
+        
+        /* 드롭다운 */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            min-width: 180px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            border-radius: 8px;
+            border: 1px solid #475569;
+        }
+        .dropdown-content a {
+            color: #E2E8F0;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.2s ease;
+        }
+        .dropdown-content a:hover {
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+        }
+        .show {
+            display: block;
+        }
+        
+        /* 노드 스타일 */
+        .node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        .node:hover {
+            stroke-width: 3px;
+            filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.4));
+            transform: scale(1.05);
+        }
+        .node.selected {
+            stroke-width: 4px;
+            filter: drop-shadow(0 6px 20px rgba(37, 99, 235, 0.6));
+        }
+        .node-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            fill: #E2E8F0;
+            text-anchor: middle;
+            pointer-events: none;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* 링크 스타일 */
+        .link {
+            stroke: #64748B;
+            stroke-opacity: 0.7;
+            stroke-width: 2px;
+            transition: all 0.3s ease;
+        }
+        .link:hover,
+        .link.highlighted {
+            stroke: #2563EB;
+            stroke-opacity: 0.9;
+            stroke-width: 3px;
+        }
+        
+        /* 설비 타입별 색상 */
+        .equipment-type-production { fill: #1E40AF; stroke: #1E3A8A; }
+        .equipment-type-utility { fill: #0D9488; stroke: #0F766E; }
+        .equipment-type-safety { fill: #EA580C; stroke: #C2410C; }
+        .equipment-type-quality { fill: #10B981; stroke: #059669; }
+        .equipment-type-maintenance { fill: #CA8A04; stroke: #A16207; }
+        
+        /* 카드 스타일 */
+        .card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* 버튼 그라디언트 */
+        .btn-primary {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #047857);
+            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #047857, #065F46);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #0284C7, #0369A1);
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+        }
+        .btn-info:hover {
+            background: linear-gradient(135deg, #0369A1, #075985);
+            box-shadow: 0 4px 8px rgba(2, 132, 199, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #D97706, #B45309);
+            box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
+        }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #B45309, #92400E);
+            box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3);
+        }
+        
+        /* 애니메이션 */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(37, 99, 235, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.8); }
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        
+        /* 글래스모피즘 효과 */
+        .glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- 상단 네비게이션 바 -->
+    <nav class="glass py-3 px-6 flex items-center justify-between border-b border-slate-600/30">
+        <div class="flex items-center">
+            <div class="font-bold text-2xl text-primary mr-3">
+                <i class="ri-factory-line"></i>
+            </div>
+            <div>
+                <span class="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    SmartPlant Analytics Platform
+                </span>
+                <span class="ml-3 text-xs bg-gradient-to-r from-primary to-accent text-white px-3 py-1 rounded-full">
+                    Enterprise v3.2.1
+                </span>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <input type="file" accept=".md,.txt,.csv,.json,.xlsx" id="file-upload" multiple style="display: none;">
+            <button id="upload-btn" class="btn-primary text-white px-5 py-2.5 rounded-button flex items-center font-medium transition-all duration-200">
+                <i class="ri-upload-cloud-line mr-2"></i>
+                데이터 가져오기
+            </button>
+            <button id="export-btn" class="btn-success text-white px-4 py-2.5 rounded-button flex items-center font-medium transition-all duration-200">
+                <i class="ri-download-line mr-2"></i>
+                내보내기
+            </button>
+            <button id="sync-btn" class="btn-info text-white px-4 py-2.5 rounded-button transition-all duration-200 flex items-center font-medium">
+                <i class="ri-refresh-line mr-2"></i>
+                새로고침
+            </button>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 text-sm font-medium">
+                <span class="equipment-status status-normal pulse-glow"></span>
+                <span class="text-green-400">시스템 정상</span>
+            </div>
+            <button id="settings-btn" class="text-slate-400 hover:text-primary w-9 h-9 flex items-center justify-center transition-colors duration-200">
+                <i class="ri-settings-3-line text-lg"></i>
+            </button>
+            <button id="theme-toggle" class="text-slate-400 hover:text-primary w-9 h-9 flex items-center justify-center transition-colors duration-200">
+                <i class="ri-moon-line text-lg"></i>
+            </button>
+            <div class="relative">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                    <i class="ri-user-3-fill text-white"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- 좌측 사이드바 -->
+        <aside id="sidebar" class="w-80 glass border-r border-slate-600/30 flex flex-col">
+            <div class="p-4 border-b border-slate-600/30">
+                <div class="relative mb-4">
+                    <input type="text" id="search-input" placeholder="설비명, 위치, 부서 검색..." 
+                           class="w-full bg-slate-700/50 text-slate-200 px-4 py-3 rounded-lg border border-slate-600/50 text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50">
+                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <i class="ri-search-line text-slate-400"></i>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="filter-btn active bg-gradient-to-r from-primary to-accent text-white px-3 py-2 rounded-md text-xs font-semibold" data-filter="all">전체</button>
+                    <button class="filter-btn bg-slate-600 text-slate-300 px-3 py-2 rounded-md text-xs font-semibold" data-filter="production">생산</button>
+                    <button class="filter-btn bg-slate-600 text-slate-300 px-3 py-2 rounded-md text-xs font-semibold" data-filter="utility">유틸리티</button>
+                    <button class="filter-btn bg-slate-600 text-slate-300 px-3 py-2 rounded-md text-xs font-semibold" data-filter="safety">안전</button>
+                </div>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto sidebar-scrollbar">
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-sm text-slate-300">실시간 모니터링</h3>
+                        <button id="refresh-monitoring" class="text-slate-400 hover:text-primary w-7 h-7 flex items-center justify-center transition-colors duration-200" title="모니터링 데이터 새로고침">
+                            <i class="ri-refresh-line"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-2" id="recent-files">
+                        <div class="file-item active px-3 py-3 rounded-lg cursor-pointer flex items-center card" data-type="production" data-equipment-id="EXT-2847">
+                            <span class="equipment-status status-warning"></span>
+                            <i class="ri-cpu-line mr-3 text-blue-400"></i>
+                            <div class="flex-1">
+                                <span class="text-sm font-medium">EXT-2847</span>
+                                <div class="text-xs text-slate-400">압출기 온도 상승 감지</div>
+                            </div>
+                        </div>
+                        <div class="file-item px-3 py-3 rounded-lg cursor-pointer flex items-center card" data-type="production" data-equipment-id="CONV-B2-1456">
+                            <span class="equipment-status status-critical"></span>
+                            <i class="ri-conveyor-belt-line mr-3 text-blue-400"></i>
+                            <div class="flex-1">
+                                <span class="text-sm font-medium">CONV-B2-1456</span>
+                                <div class="text-xs text-slate-400">벨트 장력 이상</div>
+                            </div>
+                        </div>
+                        <div class="file-item px-3 py-3 rounded-lg cursor-pointer flex items-center card" data-type="utility" data-equipment-id="COOL-SYS-8901">
+                            <span class="equipment-status status-normal"></span>
+                            <i class="ri-water-flash-line mr-3 text-teal-400"></i>
+                            <div class="flex-1">
+                                <span class="text-sm font-medium">COOL-SYS-8901</span>
+                                <div class="text-xs text-slate-400">냉각수 순환 정상</div>
+                            </div>
+                        </div>
+                        <div class="file-item px-3 py-3 rounded-lg cursor-pointer flex items-center card" data-type="safety" data-equipment-id="SAFETY-EMG-7734">
+                            <span class="equipment-status status-normal"></span>
+                            <i class="ri-shield-check-line mr-3 text-orange-400"></i>
+                            <div class="flex-1">
+                                <span class="text-sm font-medium">SAFETY-EMG-7734</span>
+                                <div class="text-xs text-slate-400">비상정지 시스템 대기</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-sm text-slate-300">설비 현황</h3>
+                            <button id="show-stats-chart" class="text-slate-400 hover:text-primary w-7 h-7 flex items-center justify-center transition-colors duration-200" title="설비 현황 차트 보기">
+                                <i class="ri-pie-chart-line"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-2" id="equipment-tree">
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center card" data-location="A동">
+                                <i class="ri-building-line mr-3 text-primary"></i>
+                                <span class="text-sm font-medium flex-1">생산동 A동</span>
+                                <span class="text-xs text-green-400 font-bold">●</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="EXT-2847">
+                                <i class="ri-cpu-line mr-3 text-blue-400"></i>
+                                <span class="text-sm">EXT-2847</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="MIX-1456">
+                                <i class="ri-mixer-line mr-3 text-blue-400"></i>
+                                <span class="text-sm">MIX-1456</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="CONV-B2-1456">
+                                <i class="ri-conveyor-belt-line mr-3 text-blue-400"></i>
+                                <span class="text-sm">CONV-B2-1456</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center card" data-location="B동">
+                                <i class="ri-building-2-line mr-3 text-primary"></i>
+                                <span class="text-sm font-medium flex-1">포장동 B동</span>
+                                <span class="text-xs text-orange-400 font-bold">●</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="PKG-3000">
+                                <i class="ri-archive-line mr-3 text-blue-400"></i>
+                                <span class="text-sm">PKG-3000</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="CUT-7890">
+                                <i class="ri-scissors-cut-line mr-3 text-blue-400"></i>
+                                <span class="text-sm">CUT-7890</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center card" data-location="유틸리티동">
+                                <i class="ri-building-3-line mr-3 text-primary"></i>
+                                <span class="text-sm font-medium flex-1">유틸리티동</span>
+                                <span class="text-xs text-green-400 font-bold">●</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="COOL-SYS-8901">
+                                <i class="ri-temp-cold-line mr-3 text-teal-400"></i>
+                                <span class="text-sm">COOL-SYS-8901</span>
+                            </div>
+                            <div class="px-3 py-2 rounded-lg cursor-pointer flex items-center pl-6 hover:bg-slate-700/30" data-equipment-id="COMP-AIR-2345">
+                                <i class="ri-air-purifier-line mr-3 text-teal-400"></i>
+                                <span class="text-sm">COMP-AIR-2345</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-slate-600/30 flex items-center justify-between">
+                <button id="toggle-sidebar" class="text-slate-400 hover:text-primary w-8 h-8 flex items-center justify-center transition-colors duration-200">
+                    <i class="ri-arrow-left-s-line"></i>
+                </button>
+                <div class="text-xs text-slate-400 font-medium" id="sidebar-stats">
+                    <span class="text-green-400">24</span>개 설비 | 
+                    <span class="text-blue-400">20</span>개 정상
+                </div>
+            </div>
+        </aside>
+
+        <!-- 메인 컨텐츠 -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-600/30 flex items-center justify-between glass">
+                <div>
+                    <h2 class="text-xl font-bold bg-gradient-to-r from-slate-200 to-slate-400 bg-clip-text text-transparent">
+                        NEXUS 스마트팩토리 통합 모니터링 시스템
+                    </h2>
+                    <p class="text-sm text-slate-400 font-medium mt-1">
+                        마지막 동기화: 2024년 12월 20일 09:15:23 | 
+                        <span class="text-primary">MES-7000</span>, 
+                        <span class="text-accent">SCADA-8800</span> 연동
+                    </p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3 text-sm font-medium">
+                        <span class="text-slate-300">실시간 모니터링</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="realtime-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <button id="report-btn" class="btn-info text-white px-4 py-2 rounded-button font-medium transition-all duration-200">
+                        <i class="ri-file-chart-line mr-2"></i>
+                        리포트 생성
+                    </button>
+                    <button id="share-btn" class="btn-warning text-white px-4 py-2 rounded-button font-medium transition-all duration-200">
+                        <i class="ri-share-forward-line mr-2"></i>
+                        공유
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex-1 flex overflow-hidden">
+                <!-- 네트워크 맵 시각화 영역 -->
+                <div class="flex-1 relative bg-gradient-to-br from-slate-800 to-slate-900 m-3 rounded-xl border border-slate-600/30 shadow-2xl" id="network-container">
+                    <!-- 사이드바 복귀 버튼 (사이드바가 숨겨졌을 때만 표시) -->
+                    <button id="show-sidebar-btn" class="absolute bottom-6 left-6 z-20 text-slate-400 hover:text-primary w-12 h-12 flex items-center justify-center bg-slate-800/90 backdrop-blur-sm rounded-lg border border-slate-600/50 transition-all duration-200 shadow-lg hidden">
+                        <i class="ri-arrow-right-s-line text-lg"></i>
+                    </button>
+                    <svg id="networkGraph" class="w-full h-full rounded-xl"></svg>
+                    <div id="equipment-legend" class="absolute top-6 left-6 glass p-4 rounded-lg">
+                        <h4 class="text-sm font-bold mb-3 text-slate-200">설비 타입 범례</h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full mr-3" style="background: linear-gradient(135deg, #1E40AF, #1E3A8A);"></div>
+                                <span class="font-medium">생산 설비</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full mr-3" style="background: linear-gradient(135deg, #0D9488, #0F766E);"></div>
+                                <span class="font-medium">유틸리티</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full mr-3" style="background: linear-gradient(135deg, #EA580C, #C2410C);"></div>
+                                <span class="font-medium">안전 시스템</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full mr-3" style="background: linear-gradient(135deg, #10B981, #059669);"></div>
+                                <span class="font-medium">품질 관리</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 실시간 통계 -->
+                    <div class="absolute top-6 right-6 glass p-4 rounded-lg">
+                        <h4 class="text-sm font-bold mb-3 text-slate-200 text-center">실시간 통계</h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between items-center space-x-4">
+                                <span class="text-slate-400">전체 가동률</span>
+                                <span class="font-bold text-green-400">94.2%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">에너지 효율</span>
+                                <span class="font-bold text-blue-400">87.8%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">품질 지수</span>
+                                <span class="font-bold text-emerald-400">98.5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 우측 컨트롤 패널 -->
+                <div class="w-96 glass border-l border-slate-600/30 flex flex-col">
+                    <div class="p-4 border-b border-slate-600/30">
+                        <h3 class="font-bold text-slate-200">분석 및 제어</h3>
+                    </div>
+                    <div class="flex-1 overflow-y-auto sidebar-scrollbar p-4 space-y-6">
+                        <div class="card p-4">
+                            <label class="block text-sm font-bold text-slate-300 mb-3">레이아웃 알고리즘</label>
+                            <div class="relative">
+                                <select id="layout-select" class="w-full bg-slate-700/50 text-slate-200 px-3 py-2 rounded-lg border border-slate-600/50 font-medium appearance-none pr-8">
+                                    <option value="force">포스 다이렉티드</option>
+                                    <option value="circular">원형 배치</option>
+                                    <option value="hierarchical">계층형</option>
+                                    <option value="radial">방사형</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-4">
+                            <label class="block text-sm font-bold text-slate-300 mb-3">노드 크기: <span id="node-size-value" class="text-primary">10</span></label>
+                            <input type="range" id="node-size" min="5" max="20" step="1" value="10" class="w-full h-2 bg-slate-700 rounded-full appearance-none">
+                        </div>
+                        
+                        <div class="card p-4">
+                            <label class="block text-sm font-bold text-slate-300 mb-3">링크 거리: <span id="link-distance-value" class="text-accent">120</span></label>
+                            <input type="range" id="link-distance" min="50" max="250" step="10" value="120" class="w-full h-2 bg-slate-700 rounded-full appearance-none">
+                        </div>
+                        
+                        <div class="card p-4">
+                            <label class="block text-sm font-bold text-slate-300 mb-3">반발력: <span id="charge-value" class="text-warning">-180</span></label>
+                            <input type="range" id="charge" min="-400" max="-80" step="20" value="-180" class="w-full h-2 bg-slate-700 rounded-full appearance-none">
+                        </div>
+                        
+                        <div class="card p-4">
+                            <h4 class="text-sm font-bold text-slate-300 mb-4">설비 필터</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-center justify-between text-sm font-medium">
+                                    <span class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full mr-2 bg-blue-600"></div>
+                                        생산 설비
+                                    </span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" class="equipment-filter" data-type="production" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="flex items-center justify-between text-sm font-medium">
+                                    <span class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full mr-2 bg-teal-600"></div>
+                                        유틸리티
+                                    </span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" class="equipment-filter" data-type="utility" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="flex items-center justify-between text-sm font-medium">
+                                    <span class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full mr-2 bg-orange-600"></div>
+                                        안전 시스템
+                                    </span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" class="equipment-filter" data-type="safety" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                                <label class="flex items-center justify-between text-sm font-medium">
+                                    <span class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full mr-2 bg-emerald-600"></div>
+                                        품질 관리
+                                    </span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" class="equipment-filter" data-type="quality" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="card p-4">
+                            <h4 class="text-sm font-bold text-slate-300 mb-4">선택된 설비 정보</h4>
+                            <div id="node-info" class="bg-slate-800/50 p-4 rounded-lg text-sm">
+                                <p class="text-slate-400 text-center">설비를 클릭하여 상세 정보를 확인하세요</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 border-t border-slate-600/30 space-y-3">
+                        <button id="reset-view" class="w-full bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-lg font-medium transition-all duration-200">
+                            <i class="ri-refresh-line mr-2"></i>
+                            뷰 리셋
+                        </button>
+                        <button id="apply-settings" class="w-full btn-primary text-white py-3 rounded-lg font-medium transition-all duration-200">
+                            <i class="ri-settings-5-line mr-2"></i>
+                            설정 적용
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 상태 바 -->
+            <div class="p-4 border-t border-slate-600/30 glass flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="zoom-in" class="bg-slate-600 hover:bg-slate-500 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200">
+                        <i class="ri-zoom-in-line"></i>
+                    </button>
+                    <button id="zoom-out" class="bg-slate-600 hover:bg-slate-500 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200">
+                        <i class="ri-zoom-out-line"></i>
+                    </button>
+                    <button id="fit-view" class="bg-slate-600 hover:bg-slate-500 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200">
+                        <i class="ri-focus-3-line"></i>
+                    </button>
+                </div>
+                <div class="text-sm text-slate-300 font-medium" id="stats">
+                    24개 설비 | 20개 정상
+                </div>
+                <div class="flex items-center space-x-4" id="bottom-status-display">
+                    <div class="flex items-center space-x-3 text-sm font-medium">
+                        <span class="equipment-status status-normal"></span>
+                        <span class="text-green-400">정상: 20</span>
+                        <span class="equipment-status status-warning"></span>
+                        <span class="text-yellow-400">주의: 3</span>
+                        <span class="equipment-status status-critical"></span>
+                        <span class="text-red-400">위험: 1</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 로딩 오버레이 -->
+    <div id="loading" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="glass p-8 rounded-xl flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            <span class="font-medium">데이터를 처리하고 있습니다...</span>
+        </div>
+    </div>
+
+    <!-- 노드 상세 정보 모달 -->
+    <div id="node-detail-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="glass p-6 rounded-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">설비 상세 정보</h3>
+                <button id="close-node-modal" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+            <div id="node-detail-content">
+                <!-- 동적으로 생성될 내용 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 리포트 모달 -->
+    <div id="report-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="glass p-6 rounded-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">설비 네트워크 분석 리포트</h3>
+                <div class="flex items-center space-x-3">
+                    <button id="download-report-image" class="btn-primary text-white px-4 py-2 rounded-button text-sm">
+                        <i class="ri-image-line mr-2"></i>이미지로 저장
+                    </button>
+                    <button id="download-report" class="btn-success text-white px-4 py-2 rounded-button text-sm">
+                        <i class="ri-download-line mr-2"></i>HTML 다운로드
+                    </button>
+                    <button id="close-report-modal" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center">
+                        <i class="ri-close-line text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="report-content">
+                <!-- 동적으로 생성될 리포트 내용 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 공유 모달 -->
+    <div id="share-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="glass p-6 rounded-xl max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">SmartPlant 데이터 공유</h3>
+                <button id="close-share-modal" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">공유 링크</label>
+                    <div class="flex">
+                        <input type="text" id="share-link" class="flex-1 bg-slate-700/50 text-slate-200 px-3 py-2 rounded-l-lg border border-slate-600/50 text-sm" readonly>
+                        <button id="copy-link" class="btn-primary text-white px-4 py-2 rounded-r-lg text-sm">
+                            <i class="ri-file-copy-line"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="btn-info text-white px-4 py-3 rounded-lg text-sm flex items-center justify-center">
+                        <i class="ri-mail-line mr-2"></i>이메일
+                    </button>
+                    <button class="btn-success text-white px-4 py-3 rounded-lg text-sm flex items-center justify-center">
+                        <i class="ri-kakao-talk-fill mr-2"></i>카카오톡
+                    </button>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">접근 권한</label>
+                    <div class="relative">
+                        <select class="w-full bg-slate-700/50 text-slate-200 px-3 py-2 rounded-lg border border-slate-600/50 text-sm appearance-none pr-8">
+                            <option>읽기 전용</option>
+                            <option>편집 가능</option>
+                            <option>관리자</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 설정 모달 -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="glass p-6 rounded-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-white">시스템 설정</h3>
+                <button id="close-settings-modal" class="text-slate-400 hover:text-white w-8 h-8 flex items-center justify-center">
+                    <i class="ri-close-line text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <!-- 일반 설정 -->
+                <div class="card p-4">
+                    <h4 class="font-bold text-slate-200 mb-4">일반 설정</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-300">다크 테마</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dark-theme-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-300">자동 저장</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="auto-save-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-300">알림</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 시각화 설정 -->
+                <div class="card p-4">
+                    <h4 class="font-bold text-slate-200 mb-4">시각화 설정</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">기본 레이아웃</label>
+                            <div class="relative">
+                                <select id="default-layout" class="w-full bg-slate-700/50 text-slate-200 px-3 py-2 rounded-lg border border-slate-600/50 appearance-none pr-8">
+                                    <option value="force">포스 다이렉티드</option>
+                                    <option value="circular">원형 배치</option>
+                                    <option value="hierarchical">계층형</option>
+                                    <option value="radial">방사형</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">애니메이션 속도</label>
+                            <input type="range" id="animation-speed" min="0.1" max="2" step="0.1" value="1" class="w-full h-2 bg-slate-700 rounded-full appearance-none">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-300">노드 라벨 표시</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="show-labels-toggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 데이터 설정 -->
+                <div class="card p-4">
+                    <h4 class="font-bold text-slate-200 mb-4">데이터 설정</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">실시간 업데이트 주기</label>
+                            <div class="relative">
+                                <select id="update-interval" class="w-full bg-slate-700/50 text-slate-200 px-3 py-2 rounded-lg border border-slate-600/50 appearance-none pr-8">
+                                    <option value="1000">1초</option>
+                                    <option value="5000" selected>5초</option>
+                                    <option value="10000">10초</option>
+                                    <option value="30000">30초</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">데이터 보관 기간</label>
+                            <div class="relative">
+                                <select class="w-full bg-slate-700/50 text-slate-200 px-3 py-2 rounded-lg border border-slate-600/50 appearance-none pr-8">
+                                    <option>1일</option>
+                                    <option>1주일</option>
+                                    <option selected>1개월</option>
+                                    <option>3개월</option>
+                                    <option>1년</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 설정 버튼 -->
+                <div class="flex space-x-3">
+                    <button id="save-settings" class="flex-1 btn-primary text-white py-3 rounded-lg font-medium">
+                        <i class="ri-save-line mr-2"></i>설정 저장
+                    </button>
+                    <button id="reset-settings" class="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-3 rounded-lg font-medium">
+                        <i class="ri-restart-line mr-2"></i>기본값 복원
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="equipment-network.js"></script>
+</body>
+</html> 
